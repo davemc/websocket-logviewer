@@ -1,0 +1,86 @@
+<html>
+<title>WebSocket: Log Service</title>
+<script type="text/javascript" charset="utf-8" src="jquery.js"></script>
+<script type="text/javascript"> 
+        var ws; 
+        var filePos = 0;
+        var files = {};
+ 
+        $(document).ready(function () {
+            try {
+	            ws = new WebSocket('ws://HOSTNAME:PORT/websocket'); 
+            } catch (e) {
+            	$('#status').text('The WebSocket Connection could not be opened: ' + e);
+            	ws = null;
+            }
+            if (null != ws) {
+                ws.onopen = function(event) { $('#status').text('The WebSocket Connection Is Open.'); } 
+    			ws.onmessage = function(event) { 
+    				var res = event.data;
+    				if (res.lastIndexOf("WS: ") == 0) {
+    					$('#status').text(res);
+    				} else {
+    					var doc = null;
+    					try {
+        					doc = JSON.parse(res);
+    					} catch (e) {
+        					doc = null;
+    						$('#status').text(e);
+    					}
+    					if (null != doc) {
+        					if (null == doc.error) {
+        						$.each(doc.msgs, function() {
+        							var entry = this.msg + '<br/>';
+        							var logDivName = 'log' + files[this.file];
+        							$('#' + logDivName).prepend(entry);
+        						});
+        					} else {
+        						$('#status').text(doc.error);
+        					}
+    					}
+    				}
+    			}
+    			ws.onclose = function(event) { $('#status').text('The WebSocket Connection Has Been Closed.'); } 
+            }
+        }); 
+         
+        function clearLog(position){ 
+			//if (files[filename] != null) {
+	        $('#log' + position).empty();
+        }
+
+        function removeLog(position){ 
+            var filename = $('#filename' + position).val();
+			if (files[filename] != null) {
+	            ws.send(filename);
+				var pos = files[filename];
+				$('#fileDiv' + pos).remove();
+	            files[filename] = null;
+			}
+        }
+
+        function sendFilename(){ 
+			var filename = $('#filename').val();
+			if (files[filename] == null) {
+	            filePos++;
+	            files[filename] = filePos;
+	            var entry = '<div id="fileDiv' + filePos + '" style="border-style:solid;"><input id="filename'+filePos+'" type="hidden" value="' + filename + '" /><b>' + filename + '</b>  <a href="javascript://" onclick="clearLog(' + filePos + ')">Clear</a>  <a href="javascript://" onclick="removeLog(' + filePos + ')">Remove</a><div id="log' + filePos + '"></div></div>';
+	            $('#logfiles').append(entry);
+	            ws.send(filename);
+			}
+        }
+    </script>
+</head>
+<body>
+<h1>WebSocket: Log Service</h1>
+<div id="status"></div>
+<br />
+Enter The Filename to watch
+FILES
+<input type="button" value="Watch It..." onclick="sendFilename();" />
+<br />
+<div id="result"></div>
+<div id="logfiles"></div>
+<br />
+</body>
+</html>

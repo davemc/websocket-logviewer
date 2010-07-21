@@ -224,8 +224,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 					HttpResponseStatus.NOT_FOUND));
 			return;
 		}
-		// System.out.println("WebSocketServerHandler.sendFile() URL = " +
-		// url.getFile());
+		System.out.println("WebSocketServerHandler.sendFile() URL = " + url.getFile());
 		InputStream is = this.getClass().getResourceAsStream(path);
 		if (is == null) {
 			System.out
@@ -348,8 +347,8 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 				result = uri;
 			} else if ("/favicon.ico".equals(uri)) {
 				result = uri;
-				//} else if (uri.startsWith("/flexigrid")) {
-				//result = uri;
+			} else if (uri.startsWith("/flexigrid/")) {
+				result = uri;
 			}
 		}
 		System.out.println("sanitizeUri() result = " + result);

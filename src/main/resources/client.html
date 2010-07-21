@@ -1,13 +1,16 @@
 <html>
 <title>WebSocket: Log Service</title>
+<link rel="stylesheet" type="text/css" href="flexigrid/flexigrid.css">
 <script type="text/javascript" charset="utf-8" src="jquery.js"></script>
+<script type="text/javascript" src="flexigrid/flexigrid.js"></script>
 <script type="text/javascript"> 
         var ws; 
         var filePos = 0;
         var files = {};
- 
+
         $(document).ready(function () {
-            try {
+
+        	try {
 	            ws = new WebSocket('ws://HOSTNAME:PORT/websocket'); 
             } catch (e) {
             	$('#status').text('The WebSocket Connection could not be opened: ' + e);
@@ -31,8 +34,31 @@
         					if (null == doc.error) {
         						$.each(doc.msgs, function() {
         							var entry = this.msg + '<br/>';
-        							var logDivName = 'log' + files[this.file];
-        							$('#' + logDivName).prepend(entry);
+        							var logDivName = 'datagrid' + files[this.file];
+        							//$('#' + logDivName).prepend(entry);
+        				        	var row = {};
+        				        	row.cell = {};
+									//127.0.0.1 - - [21/Jul/2010:11:46:49 +0200] GET /index.html?a=1&b=2 HTTP/1.0 304 -
+        			            	var parts = this.msg.split(' ');
+        			            	if (parts.length > 9) {
+            			            	var urlparts = parts[6].split('?');
+            			            	var url = parts[6];
+            			            	var params = '';
+            			            	if (urlparts.length == 2) {
+                			            	url = urlparts[0];
+                			            	params = urlparts[1];
+            			            	}
+	        				        	row.cell[0] = parts[3].substring(1) + ' ' + parts[4].substring(0, parts[4].length - 1);
+	        				        	row.cell[1] = parts[0];
+	        				        	row.cell[2] = parts[5];
+	        				        	row.cell[3] = url;
+	        				        	row.cell[4] = params;
+	        				        	row.cell[5] = parts[8];
+	        				        	row.cell[6] = parts[9];
+	        				        	$('#' + logDivName).flexAddRow(row);
+        			            	} else {
+            			            	//alert('expected 10 parts: ' + parts.length);
+        			            	}
         						});
         					} else {
         						$('#status').text(doc.error);
@@ -46,7 +72,7 @@
          
         function clearLog(position){ 
 			//if (files[filename] != null) {
-	        $('#log' + position).empty();
+	        $('#datagrid' + position).flexClearRows();
         }
 
         function removeLog(position){ 
@@ -64,12 +90,20 @@
 			if (files[filename] == null) {
 	            filePos++;
 	            files[filename] = filePos;
-	            var entry = '<div id="fileDiv' + filePos + '" style="border-style:solid;"><input id="filename'+filePos+'" type="hidden" value="' + filename + '" /><b>' + filename + '</b>  <a href="javascript://" onclick="clearLog(' + filePos + ')">Clear</a>  <a href="javascript://" onclick="removeLog(' + filePos + ')">Remove</a><div id="log' + filePos + '"></div></div>';
+	            var entry = '<div id="fileDiv' + filePos + '" style="border-style:solid;"><input id="filename'+filePos+'" type="hidden" value="' + filename + '" /><b>' + filename + '</b>  <a href="javascript://" onclick="clearLog(' + filePos + ')">Clear</a>  <a href="javascript://" onclick="removeLog(' + filePos + ')">Remove</a>' + getDataGridStr(filePos) + '</div>';
 	            $('#logfiles').append(entry);
+	        	$('#datagrid' + filePos).flexigrid({height:'auto',striped:false});
 	            ws.send(filename);
 			}
         }
-    </script>
+
+        function getDataGridStr( i ) {
+            //<tr><td>This is data 1 with overflowing content</td><td>This is data 2</td><td>This is data 3</td><td>This is data 4</td><td>This is data 5</td><td>This is data 6</td><td>This is data 7</td></tr>
+        	return '<table id="datagrid'+i+'"><thead><tr><th width="150">Time</th><th width="120">IP</th><th width="60">Method</th><th width="300">Path</th><th width="250">Params</th><th width="50">Result</th><th width="60">Length</th></tr></thead><tbody></tbody></table>';
+    		
+        }
+
+        </script>
 </head>
 <body>
 <h1>WebSocket: Log Service</h1>

@@ -36,29 +36,13 @@
         							var entry = this.msg + '<br/>';
         							var logDivName = 'datagrid' + files[this.file];
         							//$('#' + logDivName).prepend(entry);
-        				        	var row = {};
-        				        	row.cell = {};
-									//127.0.0.1 - - [21/Jul/2010:11:46:49 +0200] GET /index.html?a=1&b=2 HTTP/1.0 304 -
-        			            	var parts = this.msg.split(' ');
-        			            	if (parts.length > 9) {
-            			            	var urlparts = parts[6].split('?');
-            			            	var url = parts[6];
-            			            	var params = '';
-            			            	if (urlparts.length == 2) {
-                			            	url = urlparts[0];
-                			            	params = urlparts[1];
-            			            	}
-	        				        	row.cell[0] = parts[3].substring(1) + ' ' + parts[4].substring(0, parts[4].length - 1);
-	        				        	row.cell[1] = parts[0];
-	        				        	row.cell[2] = parts[5];
-	        				        	row.cell[3] = url;
-	        				        	row.cell[4] = params;
-	        				        	row.cell[5] = parts[8];
-	        				        	row.cell[6] = parts[9];
-	        				        	$('#' + logDivName).flexAddRow(row);
-        			            	} else {
-            			            	//alert('expected 10 parts: ' + parts.length);
-        			            	}
+        							var row;
+									if (this.msg.substring(0,1) == '[') {
+										row = getErrorRow(this.msg);
+									} else {
+										row = getAccessRow(this.msg);
+									}
+						        	$('#' + logDivName).flexAddRow(row);
         						});
         					} else {
         						$('#status').text(doc.error);
@@ -70,6 +54,68 @@
             }
         }); 
          
+        function getAccessRow(data) {
+			//127.0.0.1 - - [21/Jul/2010:11:46:49 +0200] GET /index.html?a=1&b=2 HTTP/1.0 304 -
+        	var row = {};
+        	row.cell = {};
+        	var parts = data.split(' ');
+        	if (parts.length > 9) {
+            	var urlparts = parts[6].split('?');
+            	var url = parts[6];
+            	var params = '';
+            	if (urlparts.length == 2) {
+	            	url = urlparts[0];
+	            	params = urlparts[1];
+            	}
+	        	row.cell[0] = parts[3].substring(1) + ' ' + parts[4].substring(0, parts[4].length - 1);
+	        	row.cell[1] = parts[0];
+	        	row.cell[2] = parts[5];
+	        	row.cell[3] = url;
+	        	row.cell[4] = params;
+	        	row.cell[5] = parts[8];
+	        	row.cell[6] = parts[9];
+        	} else {
+            	//alert('expected 10 parts: ' + parts.length);
+	        	row.cell[0] = '';
+	        	row.cell[1] = '';
+	        	row.cell[2] = '';
+	        	row.cell[3] = data;
+	        	row.cell[4] = '';
+	        	row.cell[5] = '';
+	        	row.cell[6] = '';
+        	}
+        }
+
+        function getErrorRow(data) {
+        	//[Thu Oct 15 19:08:18 2009] [error] [client 127.0.0.1] File does not exist: /var/apache2/2.2/htdocs/robots.txt
+        	var row = {};
+        	row.cell = {};
+        	var parts = data.split('] ');
+        	if (parts.length > 3) {
+            	var ipparts = parts[2].split(' ');
+            	var ip = ipparts[0];
+            	if (ipparts.length == 2) {
+	            	ip = urlparts[1];
+            	}
+	        	row.cell[0] = parts[0].substring(1);
+	        	row.cell[1] = ip;
+	        	row.cell[2] = '';
+	        	row.cell[3] = parts[3];
+	        	row.cell[4] = '';
+	        	row.cell[5] = parts[2].substring(1);
+	        	row.cell[6] = '';
+        	} else {
+            	//alert('expected 10 parts: ' + parts.length);
+	        	row.cell[0] = '';
+	        	row.cell[1] = '';
+	        	row.cell[2] = '';
+	        	row.cell[3] = data;
+	        	row.cell[4] = '';
+	        	row.cell[5] = '';
+	        	row.cell[6] = '';
+        	}
+        }
+
         function clearLog(position){ 
 			//if (files[filename] != null) {
 	        $('#datagrid' + position).flexClearRows();

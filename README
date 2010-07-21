@@ -1,6 +1,8 @@
-1. Make sure logviewer.jar and netty-3.2.1.Final.jar are in the same directory.
+1. mvn package to build
 
-2. Create a properties file logfiles.properties in the same directory
+2. Make sure websocket-logviewer.jar and netty-3.2.1.Final.jar are in the same directory.
+
+3. Create a properties file logfiles.properties in the same directory
 Add the following properties:
 	HOSTNAME=<the host name for your server>
 	PORT=<the port for your server>
@@ -8,8 +10,8 @@ Add the following properties:
 	filename2=<second file>
 You can add as many unique filename properties as you wish, so long as they start with "filename" they will be added to the list of available files.
 
-3. Change to the install directory and run:
-	java -jar logviewer.jar
+4. Change to the install directory and run:
+	java -jar websocket-logviewer.jar
 
 That's it, point your WebSockets cabable browser at http://<HOSTNAME>:<PORT> select a file and start logging.
 

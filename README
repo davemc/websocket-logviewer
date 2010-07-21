@@ -1,3 +1,5 @@
+This is an alternative branch with a flexigrid (http://code.google.com/p/flexigrid/) grid for displaying apache logfiles.
+
 1. mvn package to build
 
 2. Make sure websocket-logviewer.jar and netty-3.2.1.Final.jar are in the same directory.

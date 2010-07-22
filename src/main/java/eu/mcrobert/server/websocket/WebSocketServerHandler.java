@@ -22,7 +22,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -256,7 +258,10 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 				fileHtml = "<input id=\"filename\" value=\"/tmp/text.txt\" />";
 			}
 			contents = contents.replaceAll("FILES", fileHtml);
-
+			//TIMELINE_DATE = Jul  21 2010 19:19:00
+			SimpleDateFormat fmt = new SimpleDateFormat("MMM d yyyy HH:mm:ss");
+			contents = contents.replaceAll("TIMELINE_DATE", fmt.format(new Date()));
+			
 			tmp = File.createTempFile("websocket", ".tmp");
 			OutputStream out = new FileOutputStream(tmp);
 			out.write(contents.getBytes("UTF-8"));
@@ -342,11 +347,19 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 		if (null == uri) {
 			//
 		} else {
+			if (uri.indexOf("?") == 0) {
+				uri = "";
+			} else if (uri.indexOf("?") > 0) {
+				uri = uri.substring(0, uri.indexOf("?"));
+			}
+			//TODO how do we handle parameters
 			if (("".equals(uri)) || ("/".equals(uri))) {
 				result = "/client.html";
 			} else if ("/jquery.js".equals(uri)) {
 				result = uri;
 			} else if ("/favicon.ico".equals(uri)) {
+				result = uri;
+			} else if (uri.startsWith("/timeline")) {
 				result = uri;
 				//} else if (uri.startsWith("/flexigrid")) {
 				//result = uri;

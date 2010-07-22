@@ -1,12 +1,71 @@
 <html>
 <title>WebSocket: Log Service</title>
-<script type="text/javascript" charset="utf-8" src="jquery.js"></script>
-<script type="text/javascript"> 
+    <script>
+		Timeline_ajax_url="timeline/timeline_ajax/simile-ajax-api.js";
+		Timeline_urlPrefix='timeline/timeline_js/';       
+		Timeline_parameters='bundle=true';
+	</script>
+	<script src="timeline/timeline_js/timeline-api.js" type="text/javascript"></script>
+	<script type="text/javascript" charset="utf-8" src="jquery.js"></script>
+	<script type="text/javascript"> 
         var ws; 
         var filePos = 0;
         var files = {};
- 
+        var eventSource = null;
+        //var t1 = null;
+
+        var resizeTimerID = null;
+        function onResize() {
+          if (resizeTimerID == null) {
+            resizeTimerID = window.setTimeout(function() {
+              resizeTimerID = null;
+              tl.layout();
+            }, 500);
+          }
+        }
+         
         $(document).ready(function () {
+        	eventSource = new Timeline.DefaultEventSource();
+            var bandInfos = [
+                             Timeline.createBandInfo({
+                                 eventSource:    eventSource,
+                                 date:           "TIMELINE_DATE",
+                                 timeZone:       2,
+                                 width:          "50%",
+                                 intervalUnit:   Timeline.DateTime.SECOND,
+                                 intervalPixels: 100
+                             }),
+                             Timeline.createBandInfo({
+                                 eventSource:    eventSource,
+                                 date:           "TIMELINE_DATE",
+                                 timeZone:       2,
+                                 width:          "20%",
+                                 intervalUnit:   Timeline.DateTime.MINUTE,
+                                 intervalPixels: 200
+                             }),
+                             Timeline.createBandInfo({
+                                 eventSource:    eventSource,
+                                 date:           "TIMELINE_DATE",
+                                 timeZone:       2,
+                                 width:          "20%",
+                                 intervalUnit:   Timeline.DateTime.HOUR,
+                                 intervalPixels: 200
+                             }),
+                             Timeline.createBandInfo({
+                                 eventSource:    eventSource,
+                                 date:           "TIMELINE_DATE",
+                                 timeZone:       2,
+                                 width:          "10%",
+                                 intervalUnit:   Timeline.DateTime.DAY,
+                                 intervalPixels: 200
+                             })
+                           ];
+                           bandInfos[1].syncWith = 0;
+                           bandInfos[1].highlight = true;
+                           bandInfos[2].syncWith = 0;
+                           bandInfos[2].highlight = true;
+            tl = Timeline.create(document.getElementById("my-timeline"), bandInfos);
+        	
             try {
 	            ws = new WebSocket('ws://HOSTNAME:PORT/websocket'); 
             } catch (e) {
@@ -30,10 +89,27 @@
     					if (null != doc) {
         					if (null == doc.error) {
         						$.each(doc.msgs, function() {
-        							var entry = this.msg + '<br/>';
-        							var logDivName = 'log' + files[this.file];
-        							$('#' + logDivName).prepend(entry);
+        							var entry = this.msg;
+        							var entryParts = entry.split(' ');
+        							var method = entryParts[5];
+        							var result = entryParts[8];
+        							var id = entryParts[0];
+        							//var logDivName = 'log' + files[this.file];
+        							//$('#' + logDivName).prepend(entry);
+        							var dateStr = entry.substring(entry.indexOf('[') + 1, entry.indexOf(']'));
+        							var dateStr1 = dateStr.substring(0,dateStr.indexOf(':')) + ' ' + dateStr.substring(dateStr.indexOf(':') + 1, dateStr.indexOf(' '));
+        							//alert(dateStr1);
+        							//21/Jul/2010:17:46:49 +0200
+        					        var dateEvent = new Date(dateStr1);
+        							//alert(dateEvent);
+        					        var vals = {};
+        					        vals.start = dateEvent;
+        					        vals.text = method + ' ' + result;
+        					        vals.description = this.msg;
+        							var evt = new Timeline.DefaultEventSource.Event(vals);
+        					        eventSource.add(evt);
         						});
+        						onResize();
         					} else {
         						$('#status').text(doc.error);
         					}
@@ -71,7 +147,7 @@
         }
     </script>
 </head>
-<body>
+<body onresize="onResize();">
 <h1>WebSocket: Log Service</h1>
 <div id="status"></div>
 <br />
@@ -80,7 +156,9 @@ FILES
 <input type="button" value="Watch It..." onclick="sendFilename();" />
 <br />
 <div id="result"></div>
-<div id="logfiles"></div>
+    <div id="my-timeline"
+      style="height: 500px; border: 1px solid #aaa">
+    </div>
 <br />
 </body>
 </html>

@@ -1,3 +1,8 @@
+Apache access log viewer using the simile timeline http://simile-widgets.org/
+Will probably not work unless your log entries have the following format:
+127.0.0.1 - - [22/Jul/2010:09:04:10 +0200] GET /index.html?a=1&b=2 HTTP/1.0 304 -
+
+
 1. mvn package to build
 
 2. Make sure websocket-logviewer.jar and netty-3.2.1.Final.jar are in the same directory.
